@@ -1,16 +1,36 @@
 import matplotlib.pyplot as plt
 import networkx as nx
-from sistema import G, F, cria_usuario
+from sistema import G, F, U, cria_usuario, entrar_usuario
 
-filmes_curtidos = []
-print('Insira os filmes que voce gostou (x para acabar): ')
 while True:
-  x = input()
-  if x == 'x':
+  print('Olá bem vindo: \n (1) Criar nova conta \n (2) Selecionar uma conta existente')
+  escolha = input()
+  
+  if escolha == '1':
+    filmes_curtidos = []
+    print('Ola novo usuario, Insira os filmes que voce gostou [f1 - f6] (x para acabar): ')
+    while True:
+      x = input()
+      if x == 'x':
+        break
+      filmes_curtidos.append(x)
+    
+    cria_usuario(filmes_curtidos)
     break
-  filmes_curtidos.append(x)
-
-cria_usuario(filmes_curtidos)
+    
+  elif escolha == '2':
+    print('Escolha uma conta para logar [u1 - u7]')
+    while True:
+      x = input()
+      if x not in U: 
+        print('Escolha uma conta valida [u1 - u7]')
+      else:
+        entrar_usuario(x)
+        break
+    break
+  
+    
+    
 
 # Layout bipartido
 pos = nx.bipartite_layout(G, F)

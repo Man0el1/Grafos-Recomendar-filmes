@@ -24,46 +24,66 @@ def get_edges(usuario):
     return [f for u, f in G.edges(usuario)]
 
 def cria_usuario(filmes_curtidos):
-    U.append("u" + str(len(U) + 1))
-    verificar_usuarios_semelhantes(filmes_curtidos)
-
-def verificar_usuarios_semelhantes(filmes_curtidos):
+    usuario_novo = "u" + str(len(U) + 1)
+    U.append(usuario_novo)
+    verificar_usuarios_semelhantes(filmes_curtidos, usuario_novo)
+    
+def entrar_usuario(usuario):
+    filmes_curtidos = []
+    filmes = get_edges(usuario)
+    for filme in filmes:
+        edge_data = G.get_edge_data(usuario, filme)
+        nota = edge_data['weight']
+        if nota >= 6: 
+            filmes_curtidos.append(filme)
+    
+    verificar_usuarios_semelhantes(filmes_curtidos, usuario)
+            
+    
+def verificar_usuarios_semelhantes(filmes_curtidos, usuario_atual):
     usuarios_pontos = []
     for usuario in U:
-        filmes_avaliados = get_edges(usuario)
-        pontos = 0
-        for filme in filmes_avaliados:
-            if filme in filmes_curtidos:
-                edge_data = G.get_edge_data(usuario, filme)
-                nota = edge_data['weight']
-                pontos += nota if nota >= 6 else nota - 5
-        print(usuario + ": " + str(pontos))
-        usuarios_pontos.append([usuario, pontos])
+        if (usuario != usuario_atual):
+            filmes_avaliados = get_edges(usuario)
+            pontos = 0
+            for filme in filmes_avaliados:
+                if filme in filmes_curtidos:
+                    edge_data = G.get_edge_data(usuario, filme)
+                    nota = edge_data['weight']
+                    pontos += nota if nota >= 6 else nota - 5
+            print(usuario + ": " + str(pontos))
+            usuarios_pontos.append([usuario, pontos])
     
     top_2 = sorted(usuarios_pontos, key=lambda x: x[1], reverse=True)[:2]
     usuarios_semelhantes = [top_2[0][0], top_2[1][0]]
     
-    recomendar_filmes(usuarios_semelhantes, filmes_curtidos)
+    recomendar_filmes(usuarios_semelhantes, filmes_curtidos, usuario_atual)
 
-def recomendar_filmes(usuarios_semelhantes, filmes_curtidos):
+def recomendar_filmes(usuarios_semelhantes, filmes_curtidos, usuario_atual):
     notas_filmes = {}
+    
     for usuario in usuarios_semelhantes:
         filmes_avaliados = get_edges(usuario)
         for filme in filmes_avaliados:
             if filme not in filmes_curtidos:
+                
                 edge_data = G.get_edge_data(usuario, filme)
                 nota = edge_data['weight']
                 if filme not in notas_filmes:
                     notas_filmes[filme] = []
-                notas_filmes[filme].append(nota)
+                notas_filmes[filme].append([nota, usuario])
 
+    print(notas_filmes)
     filmes_a_recomendar = []
-    for filme, notas in notas_filmes.items():
-        media = sum(notas) / len(notas)
-        if media >= 6:
-            filmes_a_recomendar.append(filme)
+    for filme, avaliacoes in notas_filmes.items():
+        for nota, usuario in avaliacoes: 
+            
+            # TODO: usar a logica de similaridade: produto(u1, u2) / (notas[u1] * notas[u2]);
 
-    print("Ola " + U[-1] + ". Visto que curtiu os seguintes filmes:")
+            if media >= 6:
+                filmes_a_recomendar.append(filme)
+
+    print("Ola " + usuario_atual + ". Visto que curtiu os seguintes filmes:")
     print(*filmes_curtidos, sep=',')
     if filmes_a_recomendar:
         print("Para melhor experiencia, recomendamos a voce os seguintes filmes:")
@@ -71,9 +91,9 @@ def recomendar_filmes(usuarios_semelhantes, filmes_curtidos):
     else:
         print("Não encontramos novas recomendações baseadas nesses gostos.")
 
-    add_edges(filmes_a_recomendar)
+    add_edges(filmes_a_recomendar, usuario_atual)
 
-def add_edges(filmes_recomendados):
-    G.add_node(U[-1])
+def add_edges(filmes_recomendados, usuario_atual):
+    G.add_node(usuario_atual)
     for filme in filmes_recomendados:
-        G.add_edge(U[-1], filme, recomendado=True)
+        G.add_edge(usuario_atual, filme, recomendado=True)
